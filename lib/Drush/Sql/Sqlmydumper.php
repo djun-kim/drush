@@ -1,4 +1,8 @@
 <?PHP
+/**
+ * @file
+ * This is Sqlmydumper.php, implementing the mydumper SQL driver.
+ */
 
 namespace Drush\Sql;
 
@@ -14,18 +18,18 @@ class Sqlmydumper extends Sqlmysql {
     $data_only = drush_get_option('data-only');
 
     $exec = 'mydumper ';
-    
+
     // Start building up arguments for the command
     // Silent operation.
     $extra = " --verbose 0 --build-empty-files ";
-    
+
     $output_dir = drush_escapeshellarg($output_dir);
 
     if (!empty($output_dir)) {
-      $extra .=" --outputdir $output_dir ";
+      $extra .= " --outputdir $output_dir ";
     }
 
-    // Mydumper can't read credentials from a file, yet
+    // Mydumper can't read credentials from a file, yet.
     $exec .= $this->creds(FALSE);
 
     if (drush_get_option('gzip')) {
@@ -36,7 +40,7 @@ class Sqlmydumper extends Sqlmysql {
     }
 
     $exec .= $extra;
-   
+
     if (!empty($tables)) {
       $exec .= ' --tables-list ' . implode(',', $tables);
     }
@@ -44,13 +48,13 @@ class Sqlmydumper extends Sqlmysql {
       $parens = TRUE;
       $tables = array_diff(parent::listTables(), $skip_tables);
 
-      $exec .= ' --tables-list '. implode(',', $tables);
+      $exec .= ' --tables-list ' . implode(',', $tables);
 
       // Output_dir is not empty in default case where this is called from dump().
       if (empty($output_dir)) {
         $output_dir = '.';
       }
-      
+
       // Run mysqldump and append output if we need some structure only tables.
       if (!empty($structure_tables)) {
         $only_db_name = str_replace('--database=', ' ', $this->creds());
@@ -79,7 +83,7 @@ class Sqlmydumper extends Sqlmysql {
     // will generate an SQL dump file in the same backup
     // directory that pm-updatecode uses.
 
-    if (($output_dir === TRUE) || $output_dir == '' ) {
+    if (($output_dir === TRUE) || $output_dir == '') {
       // User did not pass a specific value for --result-file. Make one.
       $backup = drush_include_engine('version_control', 'backup');
       $backup_dir = $backup->prepare_backup_dir($database);
@@ -120,26 +124,25 @@ class Sqlmydumper extends Sqlmysql {
   public function loadCmd($dump_dir) {
 
     $dump_dir = drush_escapeshellarg($dump_dir);
-    
+
     if (!file_exists($dump_dir)) {
       return drush_set_error('DRUSH_SQL_LOAD_FAIL', "Can't find the given dump directory: $dump_dir");
     }
 
     $exec = "myloader --directory $dump_dir";
-    
+
     // Start building up arguments for the command.
     // Silent operation.
     $extra = " --verbose 0 ";
     $exec .= $extra;
-    
+
     // Myloader can't read credentials from a file, yet.
     $exec .= $this->creds(FALSE);
 
-
     if (file_exists("$dump_dir/schema_sql")) {
-      // First restore schemas by running mysql on the dump_dir/schemas.sql file.
+      // First restore schemas by running mysql on dump_dir/schemas_sql.
       $myexec = 'mysql ' . $this->creds() . " < $dump_dir/schema_sql";
-      
+
       if (!$return = drush_op_system($myexec)) {
         drush_log(dt('Restored database structure table schemas from !path', array('!path' => $output_dir . '/schema_sql')), 'success');
       }
@@ -161,7 +164,7 @@ class Sqlmydumper extends Sqlmysql {
     else {
       return drush_set_error('DRUSH_SQL_LOAD_FAIL', "Database load failed: $return");
     }
-    
+
   }
 
 }
