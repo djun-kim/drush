@@ -45,5 +45,8 @@ function sqlload_drush_command() {
 function drush_sqlload_sql_load($dump_dir) {
   drush_sql_bootstrap_further();
   $sql = drush_sql_get_class();
+  if (!method_exists($sql, "load")) {
+    return drush_set_error('DRUSH_SQL_LOAD_FAIL', "Your database driver does not implement load().");
+  }
   return $sql->load($dump_dir);
 }
