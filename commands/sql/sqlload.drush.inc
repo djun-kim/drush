@@ -5,8 +5,6 @@
  * Drush sql-load command.
  */
 
-require_once "./sql.drush.inc";
-
 /**
  * Implements hook_drush_command().
  */
