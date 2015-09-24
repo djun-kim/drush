@@ -10,7 +10,6 @@ class Sqlmydumper extends Sqlmysql {
     $structure_tables = $table_selection['structure'];
     $tables = $table_selection['tables'];
 
-    $ignores = array();
     $skip_tables  = array_merge($structure_tables, $skip_tables);
     $data_only = drush_get_option('data-only');
 
@@ -32,7 +31,6 @@ class Sqlmydumper extends Sqlmysql {
     if (drush_get_option('gzip')) {
       $extra .= ' --compress';
     }
-    
     if (isset($data_only)) {
       $extra .= ' --no-schemas';
     }
@@ -57,8 +55,10 @@ class Sqlmydumper extends Sqlmysql {
       if (!empty($structure_tables)) {
         $only_db_name = str_replace('--database=', ' ', $this->creds());
         $extra = ' --no-autocommit --single-transaction --opt -Q';
-        // Note: myloader is fussy about the files in $output_dir. schema_sql is ignored, but schema.sql causes a segfault.
-        $exec .= " && mysqldump " . $only_db_name . " --no-data $extra " . implode(' ', $structure_tables) . " > $output_dir/schema_sql";
+        // NB: myloader is fussy about the files in $output_dir.
+        // Hence schema_sql is ignored, but schema.sql causes a segfault.
+        $exec .= " && mysqldump " . $only_db_name . " --no-data $extra " .
+          implode(' ', $structure_tables) . " > $output_dir/schema_sql";
       }
     }
     return $parens ? "($exec)" : $exec;
