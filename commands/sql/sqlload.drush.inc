@@ -8,7 +8,7 @@
 require_once "./sql.drush.inc";
 
 /**
- * Implementation of hook_drush_command().
+ * Implements hook_drush_command().
  */
 function sqlload_drush_command() {
   $options['database'] = array(
@@ -41,8 +41,8 @@ function sqlload_drush_command() {
   return $items;
 }
 
-/**<
- * Command callback. Loads a database from a mydumper format dump directory
+/**
+ * Command callback. Loads a database from a mydumper format dump directory.
  */
 function drush_sql_load($dump_dir) {
   drush_sql_bootstrap_further();
