@@ -42,7 +42,7 @@ function sqlload_drush_command() {
 /**
  * Command callback. Loads a database from a mydumper format dump directory.
  */
-function drush_sql_load($dump_dir) {
+function drush_sqlload_sql_load($dump_dir) {
   drush_sql_bootstrap_further();
   $sql = drush_sql_get_class();
   return $sql->load($dump_dir);
