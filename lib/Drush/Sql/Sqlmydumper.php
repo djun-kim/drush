@@ -8,6 +8,9 @@ namespace Drush\Sql;
 
 class Sqlmydumper extends Sqlmysql {
 
+  /**
+   * Generate the command to invoke to perform a database dump.
+   */
   public function dumpCmd($table_selection, $output_dir = '') {
     $parens = FALSE;
     $skip_tables = $table_selection['skip'];
@@ -68,10 +71,10 @@ class Sqlmydumper extends Sqlmysql {
     return $parens ? "($exec)" : $exec;
   }
 
-  /*
+  /**
    * Generate a path to an output file for a SQL dump when needed.
    *
-   * @param string|bool @file
+   * @param string|bool $output_dir
    *   If TRUE, generate a path based on usual backup directory and current date.
    *   Otherwise, just return the path that was provided.
    */
@@ -96,10 +99,10 @@ class Sqlmydumper extends Sqlmysql {
     return $output_dir;
   }
 
-  /*
+  /**
    * Dump the database using mydumper and return the path to the resulting dump directory.
    *
-   * @param string|bool @file
+   * @param string|bool $output_dir
    *   The path where the dump directory should be created. If TRUE, generate a path
    *   based on usual backup directory and current date.
    */
@@ -121,8 +124,13 @@ class Sqlmydumper extends Sqlmysql {
     }
   }
 
+  /**
+   * Generate the command to invoke to load a given database dump.
+   *
+   * @param string $dump_dir
+   *   A path to the directory containing the mydumper database dump.
+   */
   public function loadCmd($dump_dir) {
-
     $dump_dir = drush_escapeshellarg($dump_dir);
 
     if (!file_exists($dump_dir)) {
@@ -139,6 +147,22 @@ class Sqlmydumper extends Sqlmysql {
     // Myloader can't read credentials from a file, yet.
     $exec .= $this->creds(FALSE);
 
+    return $exec;
+  }
+
+  /**
+   * Load the database using myloader.
+   *
+   * @param string $dump_dir
+   *   The path to the dump directory.
+   */
+  public function load($dump_dir) {
+    $dump_dir = drush_escapeshellarg($dump_dir);
+    $cmd = $this->loadCmd($dump_dir);
+    if (empty($cmd)) {
+      return drush_set_error('DRUSH_SQL_LOAD_FAIL', "Couldn't generate load command.");
+    }
+
     if (file_exists("$dump_dir/schema_sql")) {
       // First restore schemas by running mysql on dump_dir/schemas_sql.
       $myexec = 'mysql ' . $this->creds() . " < $dump_dir/schema_sql";
@@ -151,12 +175,6 @@ class Sqlmydumper extends Sqlmysql {
       }
     }
 
-    return $exec;
-  }
-
-  public function load($dump_dir) {
-    $cmd = $this->loadCmd($dump_dir);
-
     // Avoid the php memory of the $output array in drush_shell_exec().
     if (!$return = drush_op_system($cmd)) {
       drush_log(dt('Database restored from !path', array('!path' => $dump_dir)), 'success');
@@ -164,7 +182,6 @@ class Sqlmydumper extends Sqlmysql {
     else {
       return drush_set_error('DRUSH_SQL_LOAD_FAIL', "Database load failed: $return");
     }
-
   }
 
 }
